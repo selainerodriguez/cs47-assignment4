@@ -15,6 +15,13 @@ import Colors from "./Themes/colors"
 import Images from "./Themes/images"
 import millisToMinutesAndSeconds from "./utils/millisToMinuteSeconds";
 
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation, NavigationContainer, DarkTheme } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+
+import SongDetails from './SongDetails';
+import SongPreview from './SongPreview';
+
 // Endpoints for authorizing with Spotify
 const discovery = {
   authorizationEndpoint: "https://accounts.spotify.com/authorize",
@@ -70,6 +77,7 @@ export default function App() {
 
   // For each song index, this will get the appropriate information and render the screen
   // The screen will display all of the songs in a form similar to Spotify itself
+  //const navigation = useNavigation();
   const renderSong = ({ index }) => {
     let songInfo = tracks[index];
     let trackNumber = songInfo["track_number"];
@@ -86,31 +94,44 @@ export default function App() {
     let albumImages = albumInfo["images"];
     let albumPicLink = albumImages[0]["url"];
 
+    let externalURL = songInfo["external_urls"].spotify;
+    let previewURL = songInfo["preview_url"]
+
     // Actual rendering for this component
+    const navigation = useNavigation();
     return (
-      <View style={styles.songContainer}>
-        <View style={styles.trackNumber}>
-          <Text style={styles.grayText}>{trackNumber}</Text>
-        </View>
-        <View>
-          <Image style={styles.albumPic} source={{ uri: albumPicLink, }} alt="Album Cover Picture"/>
-        </View>
-        <View style={styles.songArtist}>
-          <Text style={styles.whiteText} numberOfLines={1}>{songName}</Text>
-          <Text style={styles.grayText} numberOfLines={1}>{artistName}</Text>
-        </View>
-        <View style={styles.albumName}>
-          <Text style={styles.whiteText} numberOfLines={1}>{albumName}</Text>
-        </View>
-        <View style={styles.albumLength}>
-          <Text style={styles.whiteText}>{songLength}</Text>
-        </View>
+      <View>
+        <Pressable onPress={() => {navigation.navigate('SongDetails', {externalURL: externalURL})}}>
+          <View style={styles.songContainer}>
+            <View style={styles.trackNumber}>
+              <Pressable onPress={(e) => {
+                e.stopPropagation();
+                navigation.navigate('SongPreview', {previewURL: previewURL})
+                }}>
+                <Ionicons name="ios-play-circle" style={styles.trackNumber} size={24} color={Colors.spotify} />
+              </Pressable>
+            </View>
+            <View>
+              <Image style={styles.albumPic} source={{ uri: albumPicLink, }} alt="Album Cover Picture"/>
+            </View>
+            <View style={styles.songArtist}>
+              <Text style={styles.whiteText} numberOfLines={1}>{songName}</Text>
+              <Text style={styles.grayText} numberOfLines={1}>{artistName}</Text>
+            </View>
+            <View style={styles.albumName}>
+              <Text style={styles.whiteText} numberOfLines={1}>{albumName}</Text>
+            </View>
+            <View style={styles.albumLength}>
+              <Text style={styles.whiteText}>{songLength}</Text>
+            </View>
+          </View> 
+        </Pressable>
       </View>
     );
   }
 
   // Create flatlist that is made up of the different song components
-  const SongsFlatList = () => {
+  function SongsFlatList () {
     return (
       <SafeAreaView style={styles.container}>
         <View>
@@ -128,16 +149,22 @@ export default function App() {
   }
 
   // Decides which content to display appropriately
-  let contentDisplayed = null;
-  if (token) {
-    contentDisplayed = <SongsFlatList />
-  } else {
-    contentDisplayed = <SpotifyAuthButton />
-  }
-
+  const Stack = createStackNavigator();
   return (
     <SafeAreaView style={styles.container}>
-      {contentDisplayed}
+      <>
+      {token ?
+        <NavigationContainer theme={DarkTheme}>
+          <Stack.Navigator>
+            <Stack.Screen name="Back" component={SongsFlatList} options={{headerShown: false}} />
+            <Stack.Screen name="SongDetails" component={SongDetails} />
+            <Stack.Screen name="SongPreview" component={SongPreview} />
+          </Stack.Navigator>
+        </NavigationContainer>
+      : 
+        <SpotifyAuthButton/>
+      }
+      </>
     </SafeAreaView>
   );
 }

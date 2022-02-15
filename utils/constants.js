@@ -10,4 +10,4 @@ export const SCOPES = [
   "user-read-private"
 ];
 export const REDIRECT_URI = "exp://10.31.52.196:19000";
-export const ALBUM_ID = "5obQ9rPASQW2mLxYM8Ko6Z?si=qIpxbDA_QMWnb09oBcdsYQ";
+export const ALBUM_ID = "6kZ42qRrzov54LcAk4onW9?si=d36hES8ARRqbMzN1PzGEYg";
